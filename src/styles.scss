@@ -1,0 +1,142 @@
+@import "./tokens";
+
+/* Global overrides for PrimeNG components to ensure consistency */
+.p-datatable {
+  .p-datatable-thead > tr > th {
+    background: transparent;
+    color: var(--p-surface-900);
+    font-weight: 700;
+    padding: 1rem;
+    border-bottom: 1px solid var(--app-surface-border);
+  }
+
+  .p-datatable-tbody > tr > td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--p-surface-100);
+  }
+
+  .p-datatable-tbody > tr {
+    transition: background-color 0.2s;
+    
+    &.p-highlight {
+      background: var(--p-primary-50);
+      color: var(--p-primary-700);
+    }
+    
+    &:hover {
+      background: var(--app-surface-hover);
+    }
+  }
+
+  &.p-datatable-striped {
+    .p-datatable-tbody > tr:nth-child(even) {
+      background: var(--app-zebra-background);
+    }
+  }
+}
+
+/* SelectButton small refinement */
+.p-selectbutton {
+    .p-button {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        background: white;
+        border-color: var(--p-surface-200);
+        color: var(--p-surface-600);
+        
+        &.p-highlight {
+            background: var(--p-primary-500);
+            border-color: var(--p-primary-500);
+            color: white;
+            
+            &:hover {
+                background: var(--p-primary-600);
+                border-color: var(--p-primary-600);
+            }
+        }
+        
+        &:hover {
+            background: var(--p-surface-50);
+        }
+    }
+}
+
+.p-paginator {
+  border-radius: 0 0 var(--app-border-radius) var(--app-border-radius);
+  border: 1px solid var(--app-surface-border);
+  border-top: 0;
+  padding: 0.5rem;
+}
+
+.sidebar {
+  background: #0f172a;
+  color: rgba(255, 255, 255, 0.7);
+  padding: var(--app-padding);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  border-right: 1px solid #1e293b;
+  overflow-y: auto;
+  
+  h3 {
+    color: #10b981;
+    margin-bottom: 1.5rem;
+    padding-left: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    
+    li {
+      padding: 0.85rem 1rem;
+      border-radius: var(--app-border-radius);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+      }
+      
+      &.active {
+        background: #059669;
+        color: white;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.content {
+  flex-grow: 1;
+  padding: 3rem;
+  background-color: var(--app-surface-ground);
+  overflow-x: hidden;
+
+  h2 {
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 2rem;
+    margin-top: 0;
+    letter-spacing: -0.025em;
+  }
+}

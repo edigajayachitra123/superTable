@@ -1,0 +1,41 @@
+.super-table {
+    width: 100%;
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
+}
+
+.flex {
+    display: flex;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.ml-auto {
+    margin-left: auto;
+}
+
+.flag {
+    background: url(https://primefaces.org/cdn/primeng/images/demo/flag/flags.png) no-repeat 0 0;
+    width: 30px;
+    height: 20px;
+    display: inline-block;
+    vertical-align: middle;
+
+    &.flag-dz { background-position: -48px -10px; }
+    &.flag-eg { background-position: -202px -43px; }
+    &.flag-pa { background-position: -10px -131px; }
+    &.flag-si { background-position: -48px -153px; }
+}
+

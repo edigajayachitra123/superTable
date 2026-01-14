@@ -1,0 +1,358 @@
+<div class="super-table">
+
+  <div class="toolbar flex justify-content-between align-items-center mb-3" *ngIf="config.globalFilter || config.exportable || config.columnToggle || config.selectionMode || config.programmaticPagination || config.resizableColumns || config.rowGroupMode">
+    <div class="flex gap-2 align-items-center">
+      <!-- Programmatic Pagination Buttons -->
+      <div class="flex gap-2 mr-4" *ngIf="config.programmaticPagination">
+        <button pButton pRipple icon="pi pi-chevron-left" (click)="prev()" [disabled]="isFirstPage()" class="p-button-text p-button-secondary"></button>
+        <button pButton pRipple icon="pi pi-refresh" (click)="reset()" [disabled]="isFirstPage()" class="p-button-text p-button-secondary"></button>
+        <button pButton pRipple icon="pi pi-chevron-right" (click)="next()" [disabled]="isLastPage()" class="p-button-text p-button-secondary"></button>
+      </div>
+
+      <p-iconField iconPosition="left" *ngIf="config.globalFilter">
+        <p-inputIcon class="pi pi-search"></p-inputIcon>
+        <input
+          pInputText
+          type="text"
+          placeholder="Search..."
+          [(ngModel)]="globalFilterValue"
+          (input)="onGlobalFilter(dt, $event)"
+          style="width: 250px"
+        />
+      </p-iconField>
+
+      <!-- Column Resize Toggle -->
+      <p-selectButton 
+        *ngIf="config.resizableColumns" 
+        [options]="resizeOptions" 
+        [(ngModel)]="config.columnResizeMode" 
+        [unselectable]="true"
+        class="ml-2">
+      </p-selectButton>
+
+      <!-- Row Group Toggle -->
+      <p-selectButton 
+        *ngIf="config.rowGroupMode" 
+        [options]="groupOptions" 
+        [(ngModel)]="currentGroupMode" 
+        (onChange)="onGroupModeChange($event)"
+        [unselectable]="true"
+        class="ml-2">
+      </p-selectButton>
+
+      <p-multiSelect
+        *ngIf="config.columnToggle"
+        [options]="config.columns"
+        [(ngModel)]="selectedColumns"
+        optionLabel="header"
+        selectedItemsLabel="{0} columns selected"
+        [style]="{'min-width': '200px'}"
+        placeholder="Choose Columns"
+        class="ml-2"
+      ></p-multiSelect>
+      <button
+        *ngIf="config.selectionMode && selectedItems?.length"
+        pButton
+        pRipple
+        label="Clear Selection"
+        icon="pi pi-filter-slash"
+        class="p-button-outlined p-button-secondary"
+        (click)="selectedItems = null"
+      ></button>
+    </div>
+    <div class="flex gap-2">
+      <button
+        *ngIf="config.exportable"
+        pButton
+        pRipple
+        label="Export"
+        icon="pi pi-upload"
+        class="p-button-help"
+        (click)="exportCSV(dt)"
+      ></button>
+    </div>
+  </div>
+
+  <p-table
+    #dt
+    [value]="data"
+    [columns]="selectedColumns"
+    [exportFilename]="config.exportFilename || 'super-table-export'"
+    [paginator]="config.paginator"
+    [rows]="config.rows || 5"
+    [rowsPerPageOptions]="config.rowsPerPageOptions"
+    [globalFilterFields]="globalFilterFields"
+    [showGridlines]="config.showGridlines"
+    [stripedRows]="config.stripedRows"
+    [scrollable]="config.scrollable"
+    [scrollHeight]="config.scrollHeight"
+    [resizableColumns]="config.resizableColumns"
+    [columnResizeMode]="config.columnResizeMode || 'fit'"
+    [reorderableColumns]="config.reorderableColumns"
+    [selectionMode]="config.selectionMode"
+    [(selection)]="selectedItems"
+    [dataKey]="config.dataKey || 'id'"
+    [(first)]="first"
+    [rowHover]="true"
+    [rowGroupMode]="config.rowGroupMode"
+    [groupRowsBy]="config.groupRowsBy"
+    [frozenValue]="config.frozenValue"
+    [contextMenu]="cm"
+    [(contextMenuSelection)]="selectedRow"
+    [editMode]="config.editMode || 'cell'"
+    [lazy]="config.lazy || false"
+    [totalRecords]="config.totalRecords || 0"
+    [loading]="config.loading || false"
+    [virtualScroll]="config.virtualScroll || false"
+    [virtualScrollItemSize]="config.virtualScrollItemSize || 46"
+    [stateKey]="config.stateKey || undefined"
+    [stateStorage]="config.stateStorage || 'session'"
+    [showCurrentPageReport]="config.showCurrentPageReport || false"
+    [currentPageReportTemplate]="config.currentPageReportTemplate || ''"
+    (onLazyLoad)="onLazyLoad.emit($event)"
+  >
+
+    <!-- Loading Body -->
+    <ng-template pTemplate="loadingbody" let-columns="columns">
+        <tr style="height:46px">
+            <td *ngIf="config.reorderableColumns"></td>
+            <td *ngIf="config.selectionMode === 'multiple'"></td>
+            <td *ngIf="config.selectionMode === 'single'"></td>
+            <td *ngIf="config.rowExpansion"></td>
+            <td *ngFor="let col of columns">
+                <p-skeleton [width]="'60%'"></p-skeleton>
+            </td>
+            <td *ngIf="config.editMode === 'row'"></td>
+        </tr>
+    </ng-template>
+
+    <!-- Context Menu -->
+    <p-contextMenu #cm [model]="contextMenuItems"></p-contextMenu>
+
+    <!-- Header -->
+    <ng-template pTemplate="header">
+      <ng-container *ngIf="!config.columnGroup">
+        <tr>
+          <th style="width: 4rem" *ngIf="config.reorderableColumns"></th>
+          <th style="width: 4rem" *ngIf="config.selectionMode === 'multiple'">
+            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+          </th>
+          <th style="width: 4rem" *ngIf="config.selectionMode === 'single'"></th>
+          <th style="width: 4rem" *ngIf="config.rowExpansion"></th>
+          <th *ngFor="let col of selectedColumns" [pSortableColumn]="col.sortable ? col.field : undefined" pReorderableColumn pResizableColumn [style.width]="col.width">
+            <div class="flex align-items-center">
+              {{ col.header }}
+              <p-sortIcon *ngIf="col.sortable" [field]="col.field"></p-sortIcon>
+              <p-columnFilter *ngIf="col.filter" type="text" [field]="col.field" display="menu" class="ml-auto"></p-columnFilter>
+            </div>
+          </th>
+          <th style="width: 8rem" *ngIf="config.editMode === 'row'"></th>
+        </tr>
+      </ng-container>
+      
+      <ng-container *ngIf="config.columnGroup">
+        <tr>
+            <th rowspan="3">Product</th>
+            <th colspan="4" class="text-center">Sale Rate</th>
+        </tr>
+        <tr>
+            <th colspan="2" class="text-center">Sales</th>
+            <th colspan="2" class="text-center">Profits</th>
+        </tr>
+        <tr>
+            <th pSortableColumn="lastYearSale">Last Year <p-sortIcon field="lastYearSale"></p-sortIcon></th>
+            <th pSortableColumn="thisYearSale">This Year <p-sortIcon field="thisYearSale"></p-sortIcon></th>
+            <th pSortableColumn="lastYearProfit">Last Year <p-sortIcon field="lastYearProfit"></p-sortIcon></th>
+            <th pSortableColumn="thisYearProfit">This Year <p-sortIcon field="thisYearProfit"></p-sortIcon></th>
+        </tr>
+      </ng-container>
+    </ng-template>
+
+    <!-- Group Header -->
+    <ng-template pTemplate="groupheader" let-row>
+      <tr pRowGroupHeader>
+        <td [attr.colspan]="totalColumns">
+          <div class="flex align-items-center gap-2 ml-2">
+            <ng-container *ngIf="config.groupRowsBy === 'representative.name'">
+                <img [alt]="row.representative.name" [src]="AVATAR_URL + row.representative.image" width="32" style="vertical-align: middle; border-radius: 50%" />
+                <span class="font-bold">{{ row.representative.name }}</span>
+            </ng-container>
+            <ng-container *ngIf="config.groupRowsBy !== 'representative.name'">
+                <span class="font-bold">{{ resolveFieldData(row, config.groupRowsBy!) }}</span>
+            </ng-container>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- Body -->
+    <ng-template pTemplate="body" let-row let-expanded="expanded" let-editing="editing" let-ri="rowIndex" let-rowgroup="rowgroup" let-rowspan="rowspan">
+      <tr [pSelectableRow]="row" [pSelectableRowIndex]="ri" [pEditableRow]="row" [pContextMenuRow]="row" [pReorderableRow]="ri" *ngIf="!config.columnGroup">
+        <td *ngIf="rowgroup && config.rowGroupMode === 'rowspan'" [attr.rowspan]="rowspan">
+            <span class="font-bold ml-2">{{ resolveFieldData(row, config.groupRowsBy!) }}</span>
+        </td>
+        <td *ngIf="config.reorderableColumns">
+            <i class="pi pi-bars" pReorderableRowHandle></i>
+        </td>
+        <td *ngIf="config.selectionMode === 'multiple'">
+          <p-tableCheckbox [value]="row"></p-tableCheckbox>
+        </td>
+        <td *ngIf="config.selectionMode === 'single'">
+          <p-tableRadioButton [value]="row"></p-tableRadioButton>
+        </td>
+        <td *ngIf="config.rowExpansion">
+          <button type="button" pButton pRipple [pRowToggler]="row" class="p-button-text p-button-rounded p-button-plain" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></button>
+        </td>
+        <td *ngFor="let col of selectedColumns" [pEditableColumn]="col.field" [pEditableColumnDisabled]="config.editMode !== 'cell'">
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <input pInputText type="text" [(ngModel)]="row[col.field]" style="width: 100%">
+            </ng-template>
+            <ng-template pTemplate="output">
+              <ng-container [ngSwitch]="col.field">
+                <!-- Country Column -->
+                <ng-container *ngSwitchCase="'country'">
+                  <div class="flex align-items-center gap-2">
+                    <img
+                      src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png"
+                      [class]="'flag flag-' + row.country.code"
+                      style="width: 20px"
+                    />
+                    <span>{{ row.country.name }}</span>
+                  </div>
+                </ng-container>
+
+                <!-- Representative Column -->
+                <ng-container *ngSwitchCase="'representative'">
+                  <div class="flex align-items-center gap-2">
+                    <img
+                      [alt]="row.representative.name"
+                      [src]="AVATAR_URL + row.representative.image"
+                      width="32"
+                      style="vertical-align: middle"
+                    />
+                    <span>{{ row.representative.name }}</span>
+                  </div>
+                </ng-container>
+
+                <!-- Status Column -->
+                <ng-container *ngSwitchCase="'status'">
+                  <p-tag [value]="row.status" [severity]="getSeverity(row.status)"></p-tag>
+                </ng-container>
+
+                <!-- Default Column -->
+                <ng-container *ngSwitchDefault>
+                  {{ resolveFieldData(row, col.field) }}
+                </ng-container>
+              </ng-container>
+            </ng-template>
+          </p-cellEditor>
+        </td>
+        <td *ngIf="config.editMode === 'row'">
+            <div class="flex align-items-center justify-content-center gap-2">
+                <button *ngIf="!editing" pButton pRipple type="button" pInitEditableRow icon="pi pi-pencil" class="p-button-rounded p-button-text"></button>
+                <button *ngIf="editing" pButton pRipple type="button" pSaveEditableRow icon="pi pi-check" class="p-button-rounded p-button-text p-button-success mr-2"></button>
+                <button *ngIf="editing" pButton pRipple type="button" pCancelEditableRow icon="pi pi-times" class="p-button-rounded p-button-text p-button-danger"></button>
+            </div>
+        </td>
+      </tr>
+
+      <tr *ngIf="config.columnGroup">
+        <td>{{ row.product }}</td>
+        <td>{{ row.lastYearSale }}%</td>
+        <td>{{ row.thisYearSale }}%</td>
+        <td>{{ row.lastYearProfit | currency }}</td>
+        <td>{{ row.thisYearProfit | currency }}</td>
+      </tr>
+    </ng-template>
+
+    <!-- Frozen Body -->
+    <ng-template pTemplate="frozenbody" let-row let-ri="rowIndex">
+        <tr style="height:46px" class="bg-blue-50">
+            <td *ngIf="config.reorderableColumns"></td>
+            <td *ngIf="config.selectionMode === 'multiple'"></td>
+            <td *ngIf="config.selectionMode === 'single'"></td>
+            <td *ngIf="config.rowExpansion"></td>
+            <td *ngFor="let col of selectedColumns">
+                <ng-container [ngSwitch]="col.field">
+                    <ng-container *ngSwitchCase="'country'">
+                        <div class="flex align-items-center gap-2">
+                            <img src="https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png" [class]="'flag flag-' + row.country.code" style="width: 20px" />
+                            <span>{{ row.country.name }}</span>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngSwitchCase="'representative'">
+                        <div class="flex align-items-center gap-2">
+                            <img [alt]="row.representative.name" [src]="AVATAR_URL + row.representative.image" width="32" style="vertical-align: middle" />
+                            <span>{{ row.representative.name }}</span>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngSwitchCase="'status'">
+                        <p-tag [value]="row.status" [severity]="getSeverity(row.status)"></p-tag>
+                    </ng-container>
+                    <ng-container *ngSwitchDefault>
+                        {{ resolveFieldData(row, col.field) }}
+                    </ng-container>
+                </ng-container>
+            </td>
+            <td *ngIf="config.editMode === 'row'"></td>
+        </tr>
+    </ng-template>
+    
+    <!-- Frozen Row Expansion -->
+    <ng-template pTemplate="frozenrowexpansion" let-row>
+        <tr>
+            <td [attr.colspan]="totalColumns"></td>
+        </tr>
+    </ng-template>
+
+    <!-- Row Expansion -->
+    <ng-template pTemplate="rowexpansion" let-row>
+      <tr>
+        <td [attr.colspan]="totalColumns">
+          <div class="p-4 border-1 surface-border border-round surface-card m-2">
+            <h4 class="mt-0 mb-3">Product Details</h4>
+            <div class="grid">
+              <div class="col-12 md:col-6">
+                <ul class="list-none p-0 m-0">
+                  <li class="flex align-items-center py-2 border-bottom-1 surface-border">
+                    <span class="font-bold w-12rem">Name:</span>
+                    <span>{{ row.name }}</span>
+                  </li>
+                  <li class="flex align-items-center py-2 border-bottom-1 surface-border">
+                    <span class="font-bold w-12rem">Code:</span>
+                    <span>{{ row.code }}</span>
+                  </li>
+                  <li class="flex align-items-center py-2">
+                    <span class="font-bold w-12rem">Category:</span>
+                    <span>{{ row.category }}</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="col-12 md:col-6">
+                <ul class="list-none p-0 m-0">
+                  <li class="flex align-items-center py-2 border-bottom-1 surface-border">
+                    <span class="font-bold w-12rem">Price:</span>
+                    <span>{{ row.price | currency:'USD' }}</span>
+                  </li>
+                  <li class="flex align-items-center py-2 border-bottom-1 surface-border">
+                    <span class="font-bold w-12rem">Inventory:</span>
+                    <p-tag [value]="row.inventoryStatus" [severity]="getSeverity(row.inventoryStatus)"></p-tag>
+                  </li>
+                  <li class="flex align-items-center py-2">
+                    <span class="font-bold w-12rem">Rating:</span>
+                    <span class="flex align-items-center gap-1">
+                        {{ row.rating }} <i class="pi pi-star-fill text-yellow-500"></i>
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+  </p-table>
+
+</div>

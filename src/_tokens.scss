@@ -1,0 +1,31 @@
+:root {
+  --app-primary-color: var(--p-primary-500);
+  --app-surface-ground: var(--p-surface-50);
+  --app-surface-section: var(--p-surface-0);
+  --app-surface-border: var(--p-surface-200);
+  --app-surface-hover: var(--p-surface-100);
+  
+  --app-border-radius: 8px;
+  --app-padding: 1rem;
+  
+  --app-zebra-background: var(--p-surface-50);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--app-surface-ground);
+  color: var(--p-surface-900);
+  font-family: var(--p-font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.card {
+  background: var(--app-surface-section);
+  padding: var(--app-padding);
+  border-radius: var(--app-border-radius);
+  border: 1px solid var(--app-surface-border);
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
+}
